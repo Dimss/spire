@@ -2,11 +2,9 @@ package util
 
 import (
 	"context"
-	"crypto"
 	"crypto/x509"
 	"flag"
 	"fmt"
-	"net"
 	"strings"
 
 	"github.com/spiffe/go-spiffe/v2/bundle/spiffebundle"
@@ -20,6 +18,7 @@ import (
 	trustdomainv1 "github.com/spiffe/spire-api-sdk/proto/spire/api/server/trustdomain/v1"
 	api_types "github.com/spiffe/spire-api-sdk/proto/spire/api/types"
 	common_cli "github.com/spiffe/spire/pkg/common/cli"
+	"github.com/spiffe/spire/pkg/common/jwtutil"
 	"github.com/spiffe/spire/pkg/common/pemutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -33,13 +32,12 @@ const (
 	FormatSPIFFE         = "spiffe"
 )
 
-func Dial(addr net.Addr) (*grpc.ClientConn, error) {
-	return grpc.Dial(addr.String(), //nolint: staticcheck // It is going to be resolved on #5152
+func NewGRPCClient(addr string) (*grpc.ClientConn, error) {
+	return grpc.NewClient(
+		addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(dialer),
-		grpc.WithBlock(),                  //nolint: staticcheck // It is going to be resolved on #5152
-		grpc.FailOnNonTempDialError(true), //nolint: staticcheck // It is going to be resolved on #5152
-		grpc.WithReturnConnectionError())  //nolint: staticcheck // It is going to be resolved on #5152
+	)
 }
 
 type ServerClient interface {
@@ -54,8 +52,8 @@ type ServerClient interface {
 	NewHealthClient() grpc_health_v1.HealthClient
 }
 
-func NewServerClient(addr net.Addr) (ServerClient, error) {
-	conn, err := Dial(addr)
+func NewServerClient(addr string) (ServerClient, error) {
+	conn, err := NewGRPCClient(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -157,12 +155,7 @@ func (a *Adapter) Run(args []string) int {
 		return 1
 	}
 
-	addr, err := a.getAddr()
-	if err != nil {
-		fmt.Fprintln(a.env.Stderr, "Error: "+err.Error())
-		return 1
-	}
-
+	addr := a.getGRPCAddr()
 	client, err := NewServerClient(addr)
 	if err != nil {
 		fmt.Fprintln(a.env.Stderr, "Error: "+err.Error())
@@ -252,7 +245,7 @@ func protoFromSpiffeBundle(bundle *spiffebundle.Bundle) (*api_types.Bundle, erro
 		X509Authorities: protoFromX509Certificates(bundle.X509Authorities()),
 	}
 
-	jwtAuthorities, err := protoFromJWTKeys(bundle.JWTAuthorities())
+	jwtAuthorities, err := jwtutil.ProtoFromJWTKeys(bundle.JWTAuthorities())
 	if err != nil {
 		return nil, err
 	}
@@ -279,22 +272,4 @@ func protoFromX509Certificates(certs []*x509.Certificate) []*api_types.X509Certi
 	}
 
 	return resp
-}
-
-// protoFromJWTKeys converts JWT keys from the given map[string]crypto.PublicKey to []*types.JWTKey
-func protoFromJWTKeys(keys map[string]crypto.PublicKey) ([]*api_types.JWTKey, error) {
-	var resp []*api_types.JWTKey
-
-	for kid, key := range keys {
-		pkixBytes, err := x509.MarshalPKIXPublicKey(key)
-		if err != nil {
-			return nil, err
-		}
-		resp = append(resp, &api_types.JWTKey{
-			PublicKey: pkixBytes,
-			KeyId:     kid,
-		})
-	}
-
-	return resp, nil
 }

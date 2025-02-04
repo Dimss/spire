@@ -166,7 +166,6 @@ func TestConfigure(t *testing.T) {
 			expectMsgPrefix: "token_path is required",
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var err error
 
@@ -179,7 +178,7 @@ func TestConfigure(t *testing.T) {
 				return v, ok
 			}
 
-			plainConfig := ""
+			var plainConfig string
 			if tt.plainConfig != "" {
 				plainConfig = tt.plainConfig
 			} else {
@@ -667,7 +666,6 @@ func TestMintX509CA(t *testing.T) {
 			expectMsgPrefix: "upstreamauthority(vault): failed to parse CSR data:",
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			fakeVaultServer := tt.fakeServer()
 

@@ -29,7 +29,7 @@ var (
 	skippedEntryEventID   = []string{telemetry.Entry, telemetry.SkippedEntryEventIDs, telemetry.Count}
 
 	defaultRegistrationEntries = []*common.RegistrationEntry{
-		&common.RegistrationEntry{
+		{
 			EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 			ParentId: "spiffe://example.org/test_node_1",
 			SpiffeId: "spiffe://example.org/test_job_2",
@@ -37,7 +37,7 @@ var (
 				{Type: "testjob", Value: "2"},
 			},
 		},
-		&common.RegistrationEntry{
+		{
 			EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 			ParentId: "spiffe://example.org/test_node_2",
 			SpiffeId: "spiffe://example.org/test_job_3",
@@ -47,11 +47,11 @@ var (
 		},
 	}
 	defaultRegistrationEntryEventsStartingAt60 = []*datastore.RegistrationEntryEvent{
-		&datastore.RegistrationEntryEvent{
+		{
 			EventID: 60,
 			EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 		},
-		&datastore.RegistrationEntryEvent{
+		{
 			EventID: 61,
 			EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 		},
@@ -96,7 +96,7 @@ func TestLoadEntryCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 0,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_1",
@@ -113,7 +113,7 @@ func TestLoadEntryCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1000,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_1",
@@ -127,11 +127,11 @@ func TestLoadEntryCache(t *testing.T) {
 				"6837984a-bc44-462b-9ca6-5cd59be35066",
 			},
 			expectedGauges: []expectedGauge{
-				expectedGauge{Key: skippedEntryEventID, Value: 0},
-				expectedGauge{Key: nodeAliasesByEntryID, Value: 0},
-				expectedGauge{Key: nodeAliasesBySelector, Value: 0},
-				expectedGauge{Key: entriesByEntryID, Value: 1},
-				expectedGauge{Key: entriesByParentID, Value: 1},
+				{Key: skippedEntryEventID, Value: 0},
+				{Key: nodeAliasesByEntryID, Value: 0},
+				{Key: nodeAliasesBySelector, Value: 0},
+				{Key: entriesByEntryID, Value: 1},
+				{Key: entriesByParentID, Value: 1},
 			},
 		},
 		{
@@ -139,7 +139,7 @@ func TestLoadEntryCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 0,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_1",
@@ -147,7 +147,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "1"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_2",
@@ -155,7 +155,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "2"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -163,7 +163,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "3"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_4",
@@ -171,7 +171,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "4"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "354c16f4-4e61-4c17-8596-7baa7744d504",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_5",
@@ -188,7 +188,7 @@ func TestLoadEntryCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1000,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_1",
@@ -196,7 +196,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "1"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_2",
@@ -204,7 +204,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "2"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -212,7 +212,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "3"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_4",
@@ -220,7 +220,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "4"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "354c16f4-4e61-4c17-8596-7baa7744d504",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_5",
@@ -238,11 +238,11 @@ func TestLoadEntryCache(t *testing.T) {
 				"354c16f4-4e61-4c17-8596-7baa7744d504",
 			},
 			expectedGauges: []expectedGauge{
-				expectedGauge{Key: skippedEntryEventID, Value: 0},
-				expectedGauge{Key: nodeAliasesByEntryID, Value: 0},
-				expectedGauge{Key: nodeAliasesBySelector, Value: 0},
-				expectedGauge{Key: entriesByEntryID, Value: 5},
-				expectedGauge{Key: entriesByParentID, Value: 5},
+				{Key: skippedEntryEventID, Value: 0},
+				{Key: nodeAliasesByEntryID, Value: 0},
+				{Key: nodeAliasesBySelector, Value: 0},
+				{Key: entriesByEntryID, Value: 5},
+				{Key: entriesByParentID, Value: 5},
 			},
 		},
 		{
@@ -250,7 +250,7 @@ func TestLoadEntryCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 5,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_1",
@@ -258,7 +258,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "1"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_2",
@@ -266,7 +266,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "2"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -274,7 +274,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "3"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_4",
@@ -282,7 +282,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "4"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "354c16f4-4e61-4c17-8596-7baa7744d504",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_5",
@@ -300,11 +300,11 @@ func TestLoadEntryCache(t *testing.T) {
 				"354c16f4-4e61-4c17-8596-7baa7744d504",
 			},
 			expectedGauges: []expectedGauge{
-				expectedGauge{Key: skippedEntryEventID, Value: 0},
-				expectedGauge{Key: nodeAliasesByEntryID, Value: 0},
-				expectedGauge{Key: nodeAliasesBySelector, Value: 0},
-				expectedGauge{Key: entriesByEntryID, Value: 5},
-				expectedGauge{Key: entriesByParentID, Value: 5},
+				{Key: skippedEntryEventID, Value: 0},
+				{Key: nodeAliasesByEntryID, Value: 0},
+				{Key: nodeAliasesBySelector, Value: 0},
+				{Key: entriesByEntryID, Value: 5},
+				{Key: entriesByParentID, Value: 5},
 			},
 		},
 		{
@@ -312,7 +312,7 @@ func TestLoadEntryCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 3,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_1",
@@ -320,7 +320,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "1"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 						ParentId: "spiffe://example.org/test_node_1",
 						SpiffeId: "spiffe://example.org/test_job_2",
@@ -328,7 +328,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "2"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -336,7 +336,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "3"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_4",
@@ -344,7 +344,7 @@ func TestLoadEntryCache(t *testing.T) {
 							{Type: "testjob", Value: "4"},
 						},
 					},
-					&common.RegistrationEntry{
+					{
 						EntryId:  "354c16f4-4e61-4c17-8596-7baa7744d504",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_5",
@@ -362,11 +362,11 @@ func TestLoadEntryCache(t *testing.T) {
 				"354c16f4-4e61-4c17-8596-7baa7744d504",
 			},
 			expectedGauges: []expectedGauge{
-				expectedGauge{Key: skippedEntryEventID, Value: 0},
-				expectedGauge{Key: nodeAliasesByEntryID, Value: 0},
-				expectedGauge{Key: nodeAliasesBySelector, Value: 0},
-				expectedGauge{Key: entriesByEntryID, Value: 5},
-				expectedGauge{Key: entriesByParentID, Value: 5},
+				{Key: skippedEntryEventID, Value: 0},
+				{Key: nodeAliasesByEntryID, Value: 0},
+				{Key: nodeAliasesBySelector, Value: 0},
+				{Key: entriesByEntryID, Value: 5},
+				{Key: entriesByParentID, Value: 5},
 			},
 		},
 	} {
@@ -450,7 +450,7 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 			waitToPoll: time.Duration(2) * defaultSQLTransactionTimeout,
 			// even with new before first events, they shouldn't load
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 58,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
@@ -481,7 +481,7 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 				registrationEntryEvents: defaultRegistrationEntryEventsStartingAt60,
 			},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 58,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
@@ -501,7 +501,7 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 				registrationEntryEvents: defaultRegistrationEntryEventsStartingAt60,
 			},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 64,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
@@ -520,7 +520,7 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 			},
 			eventsBeforeFirst: []uint{58},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 58,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
@@ -539,11 +539,11 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 			},
 			eventsBeforeFirst: []uint{58},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: defaultFirstEntryEvent - 2,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: defaultLastEntryEvent + 2,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
@@ -561,23 +561,23 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 				registrationEntryEvents: defaultRegistrationEntryEventsStartingAt60,
 			},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 48,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 49,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 53,
 					EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 56,
 					EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 57,
 					EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 				},
@@ -601,23 +601,23 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 				registrationEntryEvents: defaultRegistrationEntryEventsStartingAt60,
 			},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 48,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 49,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 53,
 					EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 56,
 					EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: defaultLastEntryEvent + 1,
 					EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 				},
@@ -641,23 +641,23 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 
 			eventsBeforeFirst: []uint{48, 49},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 48,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 49,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 53,
 					EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 56,
 					EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 57,
 					EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 				},
@@ -679,23 +679,23 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 			},
 			eventsBeforeFirst: []uint{48, 49},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 48,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 49,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 53,
 					EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 56,
 					EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: defaultLastEntryEvent + 1,
 					EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 				},
@@ -717,23 +717,23 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 
 			eventsBeforeFirst: []uint{48, 49, 53, 56, 57},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 48,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 49,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 53,
 					EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 56,
 					EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 57,
 					EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 				},
@@ -752,27 +752,27 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 
 			eventsBeforeFirst: []uint{48, 49, 53, 56, 57},
 			polledEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 48,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 49,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 53,
 					EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 56,
 					EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 57,
 					EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: defaultLastEntryEvent + 1,
 					EntryID: "aeb603b2-e1d1-4832-8809-60a1d14b42e0",
 				},
@@ -782,7 +782,6 @@ func TestSearchBeforeFirstEntryEvent(t *testing.T) {
 			expectedFetches:           []string{},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			scenario := NewEntryScenario(t, tt.setup)
 			registrationEntries, err := scenario.buildRegistrationEntriesCache()
@@ -837,7 +836,7 @@ func TestSelectedPolledEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 100,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
@@ -849,23 +848,23 @@ func TestSelectedPolledEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 102,
 						EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 103,
 						EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 104,
 						EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 105,
 						EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 					},
@@ -877,19 +876,19 @@ func TestSelectedPolledEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 102,
 						EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 104,
 						EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 105,
 						EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 					},
@@ -902,11 +901,11 @@ func TestSelectedPolledEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 107,
 						EntryID: "c3f4ada0-3f8d-421e-b5d1-83aaee203d94",
 					},
@@ -919,15 +918,15 @@ func TestSelectedPolledEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 102,
 						EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 103,
 						EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 					},
@@ -944,19 +943,19 @@ func TestSelectedPolledEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 103,
 						EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 106,
 						EntryID: "aeb603b2-e1d1-4832-8809-60a1d14b42e0",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 107,
 						EntryID: "c3f4ada0-3f8d-421e-b5d1-83aaee203d94",
 					},
@@ -974,31 +973,31 @@ func TestSelectedPolledEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 102,
 						EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 103,
 						EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 104,
 						EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 105,
 						EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 106,
 						EntryID: "aeb603b2-e1d1-4832-8809-60a1d14b42e0",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 107,
 						EntryID: "c3f4ada0-3f8d-421e-b5d1-83aaee203d94",
 					},
@@ -1015,7 +1014,6 @@ func TestSelectedPolledEntryEvents(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			scenario := NewEntryScenario(t, tt.setup)
 			registrationEntries, err := scenario.buildRegistrationEntriesCache()
@@ -1058,7 +1056,7 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
@@ -1073,14 +1071,14 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
 				},
 			},
 			newEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 102,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
@@ -1096,14 +1094,14 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
 				},
 			},
 			newEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 103,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
@@ -1119,18 +1117,18 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
 				},
 			},
 			newEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 102,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 103,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
@@ -1146,18 +1144,18 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
 				},
 			},
 			newEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 102,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 103,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
@@ -1174,18 +1172,18 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
 				},
 			},
 			newEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 102,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 104,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
@@ -1202,18 +1200,18 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
 				},
 			},
 			newEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 102,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 106,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
@@ -1230,42 +1228,42 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntryEvents: []*datastore.RegistrationEntryEvent{
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 101,
 						EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 102,
 						EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 103,
 						EntryID: "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 104,
 						EntryID: "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					},
-					&datastore.RegistrationEntryEvent{
+					{
 						EventID: 105,
 						EntryID: "354c16f4-4e61-4c17-8596-7baa7744d504",
 					},
 				},
 			},
 			newEvents: []*datastore.RegistrationEntryEvent{
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 108,
 					EntryID: "6837984a-bc44-462b-9ca6-5cd59be35066",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 109,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 110,
 					EntryID: "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 				},
-				&datastore.RegistrationEntryEvent{
+				{
 					EventID: 112,
 					EntryID: "c3f4ada0-3f8d-421e-b5d1-83aaee203d94",
 				},
@@ -1279,7 +1277,6 @@ func TestScanForNewEntryEvents(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			scenario := NewEntryScenario(t, tt.setup)
 			attestedEntries, err := scenario.buildRegistrationEntriesCache()
@@ -1324,7 +1321,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 				pageSize: 1024,
 			},
 			createRegistrationEntries: []*common.RegistrationEntry{
-				&common.RegistrationEntry{
+				{
 					EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_3",
@@ -1356,7 +1353,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 				pageSize: 1024,
 			},
 			createRegistrationEntries: []*common.RegistrationEntry{
-				&common.RegistrationEntry{
+				{
 					EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_1",
@@ -1364,7 +1361,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "1"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_2",
@@ -1372,7 +1369,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "2"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_3",
@@ -1380,7 +1377,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "3"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_4",
@@ -1388,7 +1385,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "4"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "354c16f4-4e61-4c17-8596-7baa7744d504",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_5",
@@ -1419,7 +1416,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 				pageSize: 1024,
 			},
 			createRegistrationEntries: []*common.RegistrationEntry{
-				&common.RegistrationEntry{
+				{
 					EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_1",
@@ -1427,7 +1424,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "1"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_3",
@@ -1435,7 +1432,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "3"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_4",
@@ -1478,7 +1475,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -1498,7 +1495,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -1509,7 +1506,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 				},
 			},
 			createRegistrationEntries: []*common.RegistrationEntry{
-				&common.RegistrationEntry{
+				{
 					EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_4",
@@ -1532,7 +1529,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -1555,7 +1552,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -1579,7 +1576,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -1590,7 +1587,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 				},
 			},
 			createRegistrationEntries: []*common.RegistrationEntry{
-				&common.RegistrationEntry{
+				{
 					EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_1",
@@ -1598,7 +1595,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "1"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_2",
@@ -1606,7 +1603,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "2"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_4",
@@ -1614,7 +1611,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "4"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "354c16f4-4e61-4c17-8596-7baa7744d504",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_5",
@@ -1622,7 +1619,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "5"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "aeb603b2-e1d1-4832-8809-60a1d14b42e0",
 					ParentId: "spiffe://example.org/test_node_3",
 					SpiffeId: "spiffe://example.org/test_job_6",
@@ -1653,7 +1650,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -1664,7 +1661,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 				},
 			},
 			createRegistrationEntries: []*common.RegistrationEntry{
-				&common.RegistrationEntry{
+				{
 					EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_1",
@@ -1672,7 +1669,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "1"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_2",
@@ -1680,7 +1677,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "2"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "8cbf7d48-9d43-41ae-ab63-77d66891f948",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_4",
@@ -1688,7 +1685,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "4"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "354c16f4-4e61-4c17-8596-7baa7744d504",
 					ParentId: "spiffe://example.org/test_node_2",
 					SpiffeId: "spiffe://example.org/test_job_5",
@@ -1718,7 +1715,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -1729,7 +1726,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 				},
 			},
 			createRegistrationEntries: []*common.RegistrationEntry{
-				&common.RegistrationEntry{
+				{
 					EntryId:  "6837984a-bc44-462b-9ca6-5cd59be35066",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_1",
@@ -1737,7 +1734,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 						{Type: "testjob", Value: "1"},
 					},
 				},
-				&common.RegistrationEntry{
+				{
 					EntryId:  "47c96201-a4b1-4116-97fe-8aa9c2440aad",
 					ParentId: "spiffe://example.org/test_node_1",
 					SpiffeId: "spiffe://example.org/test_job_2",
@@ -1767,7 +1764,7 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			setup: &entryScenarioSetup{
 				pageSize: 1024,
 				registrationEntries: []*common.RegistrationEntry{
-					&common.RegistrationEntry{
+					{
 						EntryId:  "1d78521b-cc92-47c1-85a5-28ce47f121f2",
 						ParentId: "spiffe://example.org/test_node_2",
 						SpiffeId: "spiffe://example.org/test_job_3",
@@ -1791,7 +1788,6 @@ func TestUpdateRegistrationEntriesCache(t *testing.T) {
 			expectedAuthorizedEntries: []string{},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			scenario := NewEntryScenario(t, tt.setup)
 			registeredEntries, err := scenario.buildRegistrationEntriesCache()
@@ -1911,7 +1907,7 @@ func (s *entryScenario) buildRegistrationEntriesCache() (*registrationEntries, e
 	registrationEntries, err := buildRegistrationEntriesCache(s.ctx, s.log, s.metrics, s.ds, s.clk, s.cache, s.pageSize, defaultCacheReloadInterval, defaultSQLTransactionTimeout)
 	if registrationEntries != nil {
 		// clear out the fetches
-		for entry, _ := range registrationEntries.fetchEntries {
+		for entry := range registrationEntries.fetchEntries {
 			delete(registrationEntries.fetchEntries, entry)
 		}
 	}

@@ -29,7 +29,7 @@ func TestWithMetrics(t *testing.T) {
 	methodNames := make(map[string]struct{})
 	wv := reflect.ValueOf(w)
 	wt := reflect.TypeOf(w)
-	for i := 0; i < wt.NumMethod(); i++ {
+	for i := range wt.NumMethod() {
 		methodNames[wt.Method(i).Name] = struct{}{}
 	}
 
@@ -250,7 +250,6 @@ func TestWithMetrics(t *testing.T) {
 			methodName: "ListCAJournalsForTesting",
 		},
 	} {
-		tt := tt
 		methodType, ok := wt.MethodByName(tt.methodName)
 		require.True(t, ok, "method %q does not exist on DataStore interface", tt.methodName)
 		methodValue := wv.Method(methodType.Index)
@@ -270,7 +269,7 @@ func TestWithMetrics(t *testing.T) {
 			}
 			out := methodValue.Call(args)
 			require.Len(t, out, numOut)
-			for i := 0; i < numOut-1; i++ {
+			for i := range numOut - 1 {
 				mv := methodValue.Type().Out(i)
 				switch v := reflect.ValueOf(mv); v.Kind() {
 				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:

@@ -18,6 +18,7 @@ import (
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	bundlev1 "github.com/spiffe/spire-api-sdk/proto/spire/api/server/bundle/v1"
 	"github.com/spiffe/spire-api-sdk/proto/spire/api/types"
+	"github.com/spiffe/spire/pkg/common/jwtutil"
 	"github.com/spiffe/spire/pkg/common/telemetry"
 	"github.com/spiffe/spire/pkg/server/api"
 	"github.com/spiffe/spire/pkg/server/api/bundle/v1"
@@ -258,7 +259,6 @@ func TestGetFederatedBundle(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test.logHook.Reset()
 			test.isAdmin = tt.isAdmin
@@ -360,7 +360,6 @@ func TestGetBundle(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test := setupServiceTest(t)
 			defer test.Cleanup()
@@ -746,7 +745,6 @@ func TestAppendBundle(t *testing.T) {
 			noBundle: true,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test := setupServiceTest(t)
 			defer test.Cleanup()
@@ -1106,7 +1104,6 @@ func TestBatchDeleteFederatedBundle(t *testing.T) {
 			dsError:         status.New(codes.Internal, "datasource fails").Err(),
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test := setupServiceTest(t)
 			defer test.Cleanup()
@@ -1376,7 +1373,6 @@ func TestPublishJWTAuthority(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test.logHook.Reset()
 
@@ -1539,7 +1535,6 @@ func TestListFederatedBundles(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test.logHook.Reset()
 
@@ -1693,12 +1688,11 @@ func TestCountBundles(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test := setupServiceTest(t)
 			defer test.Cleanup()
 
-			for i := 0; i < int(tt.count); i++ {
+			for i := range int(tt.count) {
 				createBundle(t, test, tds[i].IDString())
 			}
 
@@ -1745,6 +1739,8 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 
 	bundle := makeValidBundle(t, federatedTrustDomain)
 	x509BundleHash := api.HashByte(bundle.X509Authorities[0].Asn1)
+	jwtKeyID := bundle.JwtAuthorities[0].KeyId
+	jwtKeyHash := api.HashByte(bundle.JwtAuthorities[0].PublicKey)
 
 	_, expectedX509Err := x509.ParseCertificates([]byte("malformed"))
 	require.Error(t, expectedX509Err)
@@ -1786,12 +1782,15 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "success",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "success",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -1818,12 +1817,15 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "success",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "success",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -1849,12 +1851,15 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "success",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "success",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -1888,14 +1893,17 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.StatusCode:             "InvalidArgument",
-						telemetry.StatusMessage:          `trust domain argument is not valid: trust domain characters are limited to lowercase letters, numbers, dots, dashes, and underscores`,
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "malformed id",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "error",
+						telemetry.StatusCode:                "InvalidArgument",
+						telemetry.StatusMessage:             `trust domain argument is not valid: trust domain characters are limited to lowercase letters, numbers, dots, dashes, and underscores`,
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "malformed id",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -1924,14 +1932,17 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.StatusCode:             "InvalidArgument",
-						telemetry.StatusMessage:          "creating a federated bundle for the server's own trust domain is not allowed",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "error",
+						telemetry.StatusCode:                "InvalidArgument",
+						telemetry.StatusMessage:             "creating a federated bundle for the server's own trust domain is not allowed",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -1960,12 +1971,15 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "success",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "success",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 				{
@@ -1979,14 +1993,17 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.StatusCode:             "AlreadyExists",
-						telemetry.StatusMessage:          "bundle already exists",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "error",
+						telemetry.StatusCode:                "AlreadyExists",
+						telemetry.StatusMessage:             "bundle already exists",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2011,14 +2028,17 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.StatusCode:             "Internal",
-						telemetry.StatusMessage:          "unable to create bundle: datastore error",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "error",
+						telemetry.StatusCode:                "Internal",
+						telemetry.StatusMessage:             "unable to create bundle: datastore error",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2064,7 +2084,6 @@ func TestBatchCreateFederatedBundle(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test.logHook.Reset()
 			clearDSBundles(t, test.ds)
@@ -2092,6 +2111,8 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 	require.Error(t, expectedX509Err)
 	validBundle := makeValidBundle(t, federatedTrustDomain)
 	x509BundleHash := api.HashByte(validBundle.X509Authorities[0].Asn1)
+	jwtKeyID := validBundle.JwtAuthorities[0].KeyId
+	jwtKeyHash := api.HashByte(validBundle.JwtAuthorities[0].PublicKey)
 
 	for _, tt := range []struct {
 		name              string
@@ -2127,12 +2148,15 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "success",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "success",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2165,12 +2189,15 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "success",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "success",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2203,12 +2230,15 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "success",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "success",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2242,14 +2272,17 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "malformed id",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
-						telemetry.StatusCode:             "InvalidArgument",
-						telemetry.StatusMessage:          `trust domain argument is not valid: trust domain characters are limited to lowercase letters, numbers, dots, dashes, and underscores`,
+						telemetry.Status:                    "error",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "malformed id",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
+						telemetry.StatusCode:                "InvalidArgument",
+						telemetry.StatusMessage:             `trust domain argument is not valid: trust domain characters are limited to lowercase letters, numbers, dots, dashes, and underscores`,
 					},
 				},
 			},
@@ -2278,20 +2311,23 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
-						telemetry.StatusCode:             "InvalidArgument",
-						telemetry.StatusMessage:          "updating a federated bundle for the server's own trust domain is not allowed",
+						telemetry.Status:                    "error",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
+						telemetry.StatusCode:                "InvalidArgument",
+						telemetry.StatusMessage:             "updating a federated bundle for the server's own trust domain is not allowed",
 					},
 				},
 			},
 		},
 		{
-			name:            "Update fails if bundle does not exists",
+			name:            "Update fails if bundle does not exist",
 			bundlesToUpdate: []*types.Bundle{makeValidBundle(t, federatedTrustDomain)},
 			expectedResults: []*bundlev1.BatchCreateFederatedBundleResponse_Result{
 				{
@@ -2310,14 +2346,17 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
-						telemetry.StatusCode:             "NotFound",
-						telemetry.StatusMessage:          "bundle not found",
+						telemetry.Status:                    "error",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
+						telemetry.StatusCode:                "NotFound",
+						telemetry.StatusMessage:             "bundle not found",
 					},
 				},
 			},
@@ -2342,14 +2381,17 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
-						telemetry.StatusCode:             "Internal",
-						telemetry.StatusMessage:          "failed to update bundle: datastore error",
+						telemetry.Status:                    "error",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
+						telemetry.StatusCode:                "Internal",
+						telemetry.StatusMessage:             "failed to update bundle: datastore error",
 					},
 				},
 			},
@@ -2419,14 +2461,17 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "error",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "non-existent-td",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
-						telemetry.StatusCode:             "NotFound",
-						telemetry.StatusMessage:          "bundle not found",
+						telemetry.Status:                    "error",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "non-existent-td",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
+						telemetry.StatusCode:                "NotFound",
+						telemetry.StatusMessage:             "bundle not found",
 					},
 				},
 				{
@@ -2440,18 +2485,20 @@ func TestBatchUpdateFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.Status:                 "success",
-						telemetry.Type:                   "audit",
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.TrustDomainID:          "another-example.org",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.Status:                    "success",
+						telemetry.Type:                      "audit",
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.TrustDomainID:             "another-example.org",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test := setupServiceTest(t)
 			defer test.Cleanup()
@@ -2502,6 +2549,8 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 	updatedBundle.RefreshHint = 120
 	updatedBundle.SequenceNumber = 42
 	x509BundleHash := api.HashByte(updatedBundle.X509Authorities[0].Asn1)
+	jwtKeyID := updatedBundle.JwtAuthorities[0].KeyId
+	jwtKeyHash := api.HashByte(updatedBundle.JwtAuthorities[0].PublicKey)
 
 	for _, tt := range []struct {
 		name            string
@@ -2538,12 +2587,15 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.Status:                 "success",
-						telemetry.TrustDomainID:          "another-example.org",
-						telemetry.Type:                   "audit",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.Status:                    "success",
+						telemetry.TrustDomainID:             "another-example.org",
+						telemetry.Type:                      "audit",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2570,12 +2622,15 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.Status:                 "success",
-						telemetry.TrustDomainID:          "another-example.org",
-						telemetry.Type:                   "audit",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.Status:                    "success",
+						telemetry.TrustDomainID:             "another-example.org",
+						telemetry.Type:                      "audit",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2601,12 +2656,15 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.Status:                 "success",
-						telemetry.TrustDomainID:          "another-example.org",
-						telemetry.Type:                   "audit",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.Status:                    "success",
+						telemetry.TrustDomainID:             "another-example.org",
+						telemetry.Type:                      "audit",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2640,12 +2698,15 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.Status:                 "success",
-						telemetry.TrustDomainID:          "another-example.org",
-						telemetry.Type:                   "audit",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.Status:                    "success",
+						telemetry.TrustDomainID:             "another-example.org",
+						telemetry.Type:                      "audit",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 				{
@@ -2659,12 +2720,15 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.RefreshHint:            "120",
-						telemetry.SequenceNumber:         "42",
-						telemetry.Status:                 "success",
-						telemetry.TrustDomainID:          "another-example.org",
-						telemetry.Type:                   "audit",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.RefreshHint:               "120",
+						telemetry.SequenceNumber:            "42",
+						telemetry.Status:                    "success",
+						telemetry.TrustDomainID:             "another-example.org",
+						telemetry.Type:                      "audit",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2694,14 +2758,17 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.Status:                 "error",
-						telemetry.StatusCode:             "InvalidArgument",
-						telemetry.StatusMessage:          "trust domain argument is not valid: trust domain characters are limited to lowercase letters, numbers, dots, dashes, and underscores",
-						telemetry.TrustDomainID:          "//notvalid",
-						telemetry.Type:                   "audit",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.Status:                    "error",
+						telemetry.StatusCode:                "InvalidArgument",
+						telemetry.StatusMessage:             "trust domain argument is not valid: trust domain characters are limited to lowercase letters, numbers, dots, dashes, and underscores",
+						telemetry.TrustDomainID:             "//notvalid",
+						telemetry.Type:                      "audit",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2730,14 +2797,17 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.Status:                 "error",
-						telemetry.StatusCode:             "InvalidArgument",
-						telemetry.StatusMessage:          "setting a federated bundle for the server's own trust domain is not allowed",
-						telemetry.TrustDomainID:          "example.org",
-						telemetry.Type:                   "audit",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.Status:                    "error",
+						telemetry.StatusCode:                "InvalidArgument",
+						telemetry.StatusMessage:             "setting a federated bundle for the server's own trust domain is not allowed",
+						telemetry.TrustDomainID:             "example.org",
+						telemetry.Type:                      "audit",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2762,14 +2832,17 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 					Level:   logrus.InfoLevel,
 					Message: "API accessed",
 					Data: logrus.Fields{
-						telemetry.RefreshHint:            "60",
-						telemetry.SequenceNumber:         "42",
-						telemetry.Status:                 "error",
-						telemetry.StatusCode:             "Internal",
-						telemetry.StatusMessage:          "failed to set bundle: datastore error",
-						telemetry.TrustDomainID:          "another-example.org",
-						telemetry.Type:                   "audit",
-						"x509_authorities_asn1_sha256.0": x509BundleHash,
+						telemetry.RefreshHint:               "60",
+						telemetry.SequenceNumber:            "42",
+						telemetry.Status:                    "error",
+						telemetry.StatusCode:                "Internal",
+						telemetry.StatusMessage:             "failed to set bundle: datastore error",
+						telemetry.TrustDomainID:             "another-example.org",
+						telemetry.Type:                      "audit",
+						"x509_authorities_asn1_sha256.0":    x509BundleHash,
+						"jwt_authority_expires_at.0":        "0",
+						"jwt_authority_key_id.0":            jwtKeyID,
+						"jwt_authority_public_key_sha256.0": jwtKeyHash,
 					},
 				},
 			},
@@ -2815,7 +2888,6 @@ func TestBatchSetFederatedBundle(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test := setupServiceTest(t)
 			defer test.Cleanup()
@@ -2940,7 +3012,7 @@ func setupServiceTest(t *testing.T) *serviceTest {
 		grpctest.Middleware(middleware.WithAuditLog(false)),
 	)
 
-	conn := server.Dial(t)
+	conn := server.NewGRPCClient(t)
 
 	test.client = bundlev1.NewBundleClient(conn)
 	test.done = server.Stop
@@ -2966,16 +3038,10 @@ func makeValidBundle(t *testing.T, td spiffeid.TrustDomain) *types.Bundle {
 			return authorities
 		}(b.X509Authorities()),
 
-		JwtAuthorities: func(map[string]crypto.PublicKey) []*types.JWTKey {
-			var authorities []*types.JWTKey
-			for _, val := range authorities {
-				authorities = append(authorities, &types.JWTKey{
-					PublicKey: val.PublicKey,
-					KeyId:     val.KeyId,
-					ExpiresAt: val.ExpiresAt,
-				})
-			}
-			return authorities
+		JwtAuthorities: func(keys map[string]crypto.PublicKey) []*types.JWTKey {
+			result, err := jwtutil.ProtoFromJWTKeys(keys)
+			require.NoError(t, err)
+			return result
 		}(b.JWTAuthorities()),
 	}
 }

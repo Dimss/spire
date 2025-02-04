@@ -421,7 +421,8 @@ func (s *PluginSuite) TestListBundlesWithPagination() {
 				PageSize: 2,
 			},
 			expectedList: []*common.Bundle{bundle1, bundle2},
-			expectedPagination: &datastore.Pagination{Token: "2",
+			expectedPagination: &datastore.Pagination{
+				Token:    "2",
 				PageSize: 2,
 			},
 		},
@@ -463,7 +464,6 @@ func (s *PluginSuite) TestListBundlesWithPagination() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			resp, err := s.ds.ListBundles(ctx, &datastore.ListBundlesRequest{
 				Pagination: test.pagination,
@@ -1180,7 +1180,6 @@ func (s *PluginSuite) TestListAttestedNodes() {
 			byCanReattest:       &canReattestFalse,
 		},
 	} {
-		tt := tt
 		for _, withPagination := range []bool{true, false} {
 			for _, withSelectors := range []bool{true, false} {
 				name := tt.test
@@ -1390,7 +1389,6 @@ func (s *PluginSuite) TestUpdateAttestedNode() {
 			},
 		},
 	} {
-		tt := tt
 		s.T().Run(tt.name, func(t *testing.T) {
 			s.ds = s.newPlugin()
 			defer s.ds.Close()
@@ -1726,7 +1724,7 @@ func (s *PluginSuite) TestListNodeSelectors() {
 	const attestationDataType = "fake_nodeattestor"
 	nonExpiredAttNodes := make([]*common.AttestedNode, numNonExpiredAttNodes)
 	now := time.Now()
-	for i := 0; i < numNonExpiredAttNodes; i++ {
+	for i := range numNonExpiredAttNodes {
 		nonExpiredAttNodes[i] = &common.AttestedNode{
 			SpiffeId:            fmt.Sprintf("spiffe://example.org/non-expired-node-%d", i),
 			AttestationDataType: attestationDataType,
@@ -1739,7 +1737,7 @@ func (s *PluginSuite) TestListNodeSelectors() {
 
 	const numExpiredAttNodes = 2
 	expiredAttNodes := make([]*common.AttestedNode, numExpiredAttNodes)
-	for i := 0; i < numExpiredAttNodes; i++ {
+	for i := range numExpiredAttNodes {
 		expiredAttNodes[i] = &common.AttestedNode{
 			SpiffeId:            fmt.Sprintf("spiffe://example.org/expired-node-%d", i),
 			AttestationDataType: attestationDataType,
@@ -1770,7 +1768,7 @@ func (s *PluginSuite) TestListNodeSelectors() {
 	}
 
 	nonExpiredSelectorsMap := make(map[string][]*common.Selector, numNonExpiredAttNodes)
-	for i := 0; i < numNonExpiredAttNodes; i++ {
+	for i := range numNonExpiredAttNodes {
 		spiffeID := nonExpiredAttNodes[i].SpiffeId
 		nonExpiredSelectorsMap[spiffeID] = selectorMap[spiffeID]
 	}
@@ -1824,10 +1822,10 @@ func (s *PluginSuite) TestSetNodeSelectorsUnderLoad() {
 	resultCh := make(chan error, numWorkers)
 	nextID := int32(0)
 
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		go func() {
 			id := fmt.Sprintf("ID%d", atomic.AddInt32(&nextID, 1))
-			for j := 0; j < 10; j++ {
+			for range 10 {
 				err := s.ds.SetNodeSelectors(ctx, id, selectors)
 				if err != nil {
 					resultCh <- err
@@ -1837,7 +1835,7 @@ func (s *PluginSuite) TestSetNodeSelectorsUnderLoad() {
 		}()
 	}
 
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		s.Require().NoError(<-resultCh)
 	}
 }
@@ -2076,7 +2074,6 @@ func (s *PluginSuite) TestFetchRegistrationEntry() {
 			},
 		},
 	} {
-		tt := tt
 		s.T().Run(tt.name, func(t *testing.T) {
 			createdEntry, err := s.ds.CreateRegistrationEntry(ctx, tt.entry)
 			s.Require().NoError(err)
@@ -2149,7 +2146,6 @@ func (s *PluginSuite) TestPruneRegistrationEntries() {
 			},
 		},
 	} {
-		tt := tt
 		s.T().Run(tt.name, func(t *testing.T) {
 			// Get latest event id
 			resp, err := s.ds.ListRegistrationEntryEvents(ctx, &datastore.ListRegistrationEntryEventsRequest{})
@@ -2812,7 +2808,6 @@ func (s *PluginSuite) testListRegistrationEntries(dataConsistency datastore.Data
 			expectPagedEntriesOut: [][]*common.RegistrationEntry{{foobarAD12}, {}},
 		},
 	} {
-		tt := tt
 		for _, withPagination := range []bool{true, false} {
 			name := tt.test
 			if withPagination {
@@ -2858,8 +2853,8 @@ func (s *PluginSuite) testListRegistrationEntries(dataConsistency datastore.Data
 				}
 
 				var tokensIn []string
-				var actualEntriesOut = make(map[string]*common.RegistrationEntry)
-				var expectedEntriesOut = make(map[string]*common.RegistrationEntry)
+				actualEntriesOut := make(map[string]*common.RegistrationEntry)
+				expectedEntriesOut := make(map[string]*common.RegistrationEntry)
 				req := &datastore.ListRegistrationEntriesRequest{
 					Pagination:      pagination,
 					ByParentID:      tt.byParentID,
@@ -3095,111 +3090,160 @@ func (s *PluginSuite) TestUpdateRegistrationEntryWithMask() {
 		result func(*common.RegistrationEntry)
 		err    error
 	}{ // SPIFFE ID FIELD -- this field is validated so we check with good and bad data
-		{name: "Update Spiffe ID, Good Data, Mask True",
+		{
+			name:   "Update Spiffe ID, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{SpiffeId: true},
 			update: func(e *common.RegistrationEntry) { e.SpiffeId = newEntry.SpiffeId },
-			result: func(e *common.RegistrationEntry) { e.SpiffeId = newEntry.SpiffeId }},
-		{name: "Update Spiffe ID, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.SpiffeId = newEntry.SpiffeId },
+		},
+		{
+			name:   "Update Spiffe ID, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{SpiffeId: false},
 			update: func(e *common.RegistrationEntry) { e.SpiffeId = newEntry.SpiffeId },
-			result: func(e *common.RegistrationEntry) {}},
-		{name: "Update Spiffe ID, Bad Data, Mask True",
+			result: func(e *common.RegistrationEntry) {},
+		},
+		{
+			name:   "Update Spiffe ID, Bad Data, Mask True",
 			mask:   &common.RegistrationEntryMask{SpiffeId: true},
 			update: func(e *common.RegistrationEntry) { e.SpiffeId = badEntry.SpiffeId },
-			err:    errors.New("invalid registration entry: missing SPIFFE ID")},
-		{name: "Update Spiffe ID, Bad Data, Mask False",
+			err:    errors.New("invalid registration entry: missing SPIFFE ID"),
+		},
+		{
+			name:   "Update Spiffe ID, Bad Data, Mask False",
 			mask:   &common.RegistrationEntryMask{SpiffeId: false},
 			update: func(e *common.RegistrationEntry) { e.SpiffeId = badEntry.SpiffeId },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// PARENT ID FIELD -- This field isn't validated so we just check with good data
-		{name: "Update Parent ID, Good Data, Mask True",
+		{
+			name:   "Update Parent ID, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{ParentId: true},
 			update: func(e *common.RegistrationEntry) { e.ParentId = newEntry.ParentId },
-			result: func(e *common.RegistrationEntry) { e.ParentId = newEntry.ParentId }},
-		{name: "Update Parent ID, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.ParentId = newEntry.ParentId },
+		},
+		{
+			name:   "Update Parent ID, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{ParentId: false},
 			update: func(e *common.RegistrationEntry) { e.ParentId = newEntry.ParentId },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// X509 SVID TTL FIELD -- This field is validated so we check with good and bad data
-		{name: "Update X509 SVID TTL, Good Data, Mask True",
+		{
+			name:   "Update X509 SVID TTL, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{X509SvidTtl: true},
 			update: func(e *common.RegistrationEntry) { e.X509SvidTtl = newEntry.X509SvidTtl },
-			result: func(e *common.RegistrationEntry) { e.X509SvidTtl = newEntry.X509SvidTtl }},
-		{name: "Update X509 SVID TTL, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.X509SvidTtl = newEntry.X509SvidTtl },
+		},
+		{
+			name:   "Update X509 SVID TTL, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{X509SvidTtl: false},
 			update: func(e *common.RegistrationEntry) { e.X509SvidTtl = badEntry.X509SvidTtl },
-			result: func(e *common.RegistrationEntry) {}},
-		{name: "Update X509 SVID TTL, Bad Data, Mask True",
+			result: func(e *common.RegistrationEntry) {},
+		},
+		{
+			name:   "Update X509 SVID TTL, Bad Data, Mask True",
 			mask:   &common.RegistrationEntryMask{X509SvidTtl: true},
 			update: func(e *common.RegistrationEntry) { e.X509SvidTtl = badEntry.X509SvidTtl },
-			err:    errors.New("invalid registration entry: X509SvidTtl is not set")},
-		{name: "Update X509 SVID TTL, Bad Data, Mask False",
+			err:    errors.New("invalid registration entry: X509SvidTtl is not set"),
+		},
+		{
+			name:   "Update X509 SVID TTL, Bad Data, Mask False",
 			mask:   &common.RegistrationEntryMask{X509SvidTtl: false},
 			update: func(e *common.RegistrationEntry) { e.X509SvidTtl = badEntry.X509SvidTtl },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// JWT SVID TTL FIELD -- This field is validated so we check with good and bad data
-		{name: "Update JWT SVID TTL, Good Data, Mask True",
+		{
+			name:   "Update JWT SVID TTL, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{JwtSvidTtl: true},
 			update: func(e *common.RegistrationEntry) { e.JwtSvidTtl = newEntry.JwtSvidTtl },
-			result: func(e *common.RegistrationEntry) { e.JwtSvidTtl = newEntry.JwtSvidTtl }},
-		{name: "Update JWT SVID TTL, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.JwtSvidTtl = newEntry.JwtSvidTtl },
+		},
+		{
+			name:   "Update JWT SVID TTL, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{JwtSvidTtl: false},
 			update: func(e *common.RegistrationEntry) { e.JwtSvidTtl = badEntry.JwtSvidTtl },
-			result: func(e *common.RegistrationEntry) {}},
-		{name: "Update JWT SVID TTL, Bad Data, Mask True",
+			result: func(e *common.RegistrationEntry) {},
+		},
+		{
+			name:   "Update JWT SVID TTL, Bad Data, Mask True",
 			mask:   &common.RegistrationEntryMask{JwtSvidTtl: true},
 			update: func(e *common.RegistrationEntry) { e.JwtSvidTtl = badEntry.JwtSvidTtl },
-			err:    errors.New("invalid registration entry: JwtSvidTtl is not set")},
-		{name: "Update JWT SVID TTL, Bad Data, Mask False",
+			err:    errors.New("invalid registration entry: JwtSvidTtl is not set"),
+		},
+		{
+			name:   "Update JWT SVID TTL, Bad Data, Mask False",
 			mask:   &common.RegistrationEntryMask{JwtSvidTtl: false},
 			update: func(e *common.RegistrationEntry) { e.JwtSvidTtl = badEntry.JwtSvidTtl },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// SELECTORS FIELD -- This field is validated so we check with good and bad data
-		{name: "Update Selectors, Good Data, Mask True",
+		{
+			name:   "Update Selectors, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{Selectors: true},
 			update: func(e *common.RegistrationEntry) { e.Selectors = newEntry.Selectors },
-			result: func(e *common.RegistrationEntry) { e.Selectors = newEntry.Selectors }},
-		{name: "Update Selectors, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.Selectors = newEntry.Selectors },
+		},
+		{
+			name:   "Update Selectors, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{Selectors: false},
 			update: func(e *common.RegistrationEntry) { e.Selectors = badEntry.Selectors },
-			result: func(e *common.RegistrationEntry) {}},
-		{name: "Update Selectors, Bad Data, Mask True",
+			result: func(e *common.RegistrationEntry) {},
+		},
+		{
+			name:   "Update Selectors, Bad Data, Mask True",
 			mask:   &common.RegistrationEntryMask{Selectors: true},
 			update: func(e *common.RegistrationEntry) { e.Selectors = badEntry.Selectors },
-			err:    errors.New("invalid registration entry: missing selector list")},
-		{name: "Update Selectors, Bad Data, Mask False",
+			err:    errors.New("invalid registration entry: missing selector list"),
+		},
+		{
+			name:   "Update Selectors, Bad Data, Mask False",
 			mask:   &common.RegistrationEntryMask{Selectors: false},
 			update: func(e *common.RegistrationEntry) { e.Selectors = badEntry.Selectors },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// FEDERATESWITH FIELD -- This field isn't validated so we just check with good data
-		{name: "Update FederatesWith, Good Data, Mask True",
+		{
+			name:   "Update FederatesWith, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{FederatesWith: true},
 			update: func(e *common.RegistrationEntry) { e.FederatesWith = newEntry.FederatesWith },
-			result: func(e *common.RegistrationEntry) { e.FederatesWith = newEntry.FederatesWith }},
-		{name: "Update FederatesWith Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.FederatesWith = newEntry.FederatesWith },
+		},
+		{
+			name:   "Update FederatesWith Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{FederatesWith: false},
 			update: func(e *common.RegistrationEntry) { e.FederatesWith = newEntry.FederatesWith },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// ADMIN FIELD -- This field isn't validated so we just check with good data
-		{name: "Update Admin, Good Data, Mask True",
+		{
+			name:   "Update Admin, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{Admin: true},
 			update: func(e *common.RegistrationEntry) { e.Admin = newEntry.Admin },
-			result: func(e *common.RegistrationEntry) { e.Admin = newEntry.Admin }},
-		{name: "Update Admin, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.Admin = newEntry.Admin },
+		},
+		{
+			name:   "Update Admin, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{Admin: false},
 			update: func(e *common.RegistrationEntry) { e.Admin = newEntry.Admin },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 
 		// STORESVID FIELD -- This field isn't validated so we just check with good data
-		{name: "Update StoreSvid, Good Data, Mask True",
+		{
+			name:   "Update StoreSvid, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{StoreSvid: true},
 			update: func(e *common.RegistrationEntry) { e.StoreSvid = newEntry.StoreSvid },
-			result: func(e *common.RegistrationEntry) { e.StoreSvid = newEntry.StoreSvid }},
-		{name: "Update StoreSvid, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.StoreSvid = newEntry.StoreSvid },
+		},
+		{
+			name:   "Update StoreSvid, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{Admin: false},
 			update: func(e *common.RegistrationEntry) { e.StoreSvid = newEntry.StoreSvid },
-			result: func(e *common.RegistrationEntry) {}},
-		{name: "Update StoreSvid, Invalid selectors, Mask True",
+			result: func(e *common.RegistrationEntry) {},
+		},
+		{
+			name: "Update StoreSvid, Invalid selectors, Mask True",
 			mask: &common.RegistrationEntryMask{StoreSvid: true, Selectors: true},
 			update: func(e *common.RegistrationEntry) {
 				e.StoreSvid = newEntry.StoreSvid
@@ -3208,50 +3252,68 @@ func (s *PluginSuite) TestUpdateRegistrationEntryWithMask() {
 					{Type: "Type2", Value: "Value2"},
 				}
 			},
-			err: validationError.New("invalid registration entry: selector types must be the same when store SVID is enabled"),
+			err: newValidationError("invalid registration entry: selector types must be the same when store SVID is enabled"),
 		},
 
 		// ENTRYEXPIRY FIELD -- This field isn't validated so we just check with good data
-		{name: "Update EntryExpiry, Good Data, Mask True",
+		{
+			name:   "Update EntryExpiry, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{EntryExpiry: true},
 			update: func(e *common.RegistrationEntry) { e.EntryExpiry = newEntry.EntryExpiry },
-			result: func(e *common.RegistrationEntry) { e.EntryExpiry = newEntry.EntryExpiry }},
-		{name: "Update EntryExpiry, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.EntryExpiry = newEntry.EntryExpiry },
+		},
+		{
+			name:   "Update EntryExpiry, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{EntryExpiry: false},
 			update: func(e *common.RegistrationEntry) { e.EntryExpiry = newEntry.EntryExpiry },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// DNSNAMES FIELD -- This field isn't validated so we just check with good data
-		{name: "Update DnsNames, Good Data, Mask True",
+		{
+			name:   "Update DnsNames, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{DnsNames: true},
 			update: func(e *common.RegistrationEntry) { e.DnsNames = newEntry.DnsNames },
-			result: func(e *common.RegistrationEntry) { e.DnsNames = newEntry.DnsNames }},
-		{name: "Update DnsNames, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.DnsNames = newEntry.DnsNames },
+		},
+		{
+			name:   "Update DnsNames, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{DnsNames: false},
 			update: func(e *common.RegistrationEntry) { e.DnsNames = newEntry.DnsNames },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// DOWNSTREAM FIELD -- This field isn't validated so we just check with good data
-		{name: "Update DnsNames, Good Data, Mask True",
+		{
+			name:   "Update DnsNames, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{Downstream: true},
 			update: func(e *common.RegistrationEntry) { e.Downstream = newEntry.Downstream },
-			result: func(e *common.RegistrationEntry) { e.Downstream = newEntry.Downstream }},
-		{name: "Update DnsNames, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.Downstream = newEntry.Downstream },
+		},
+		{
+			name:   "Update DnsNames, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{Downstream: false},
 			update: func(e *common.RegistrationEntry) { e.Downstream = newEntry.Downstream },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// HINT -- This field isn't validated so we just check with good data
-		{name: "Update Hint, Good Data, Mask True",
+		{
+			name:   "Update Hint, Good Data, Mask True",
 			mask:   &common.RegistrationEntryMask{Hint: true},
 			update: func(e *common.RegistrationEntry) { e.Hint = newEntry.Hint },
-			result: func(e *common.RegistrationEntry) { e.Hint = newEntry.Hint }},
-		{name: "Update Hint, Good Data, Mask False",
+			result: func(e *common.RegistrationEntry) { e.Hint = newEntry.Hint },
+		},
+		{
+			name:   "Update Hint, Good Data, Mask False",
 			mask:   &common.RegistrationEntryMask{Hint: false},
 			update: func(e *common.RegistrationEntry) { e.Hint = newEntry.Hint },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 		// This should update all fields
-		{name: "Test With Nil Mask",
+		{
+			name:   "Test With Nil Mask",
 			mask:   nil,
 			update: func(e *common.RegistrationEntry) { proto.Merge(e, oldEntry) },
-			result: func(e *common.RegistrationEntry) {}},
+			result: func(e *common.RegistrationEntry) {},
+		},
 	} {
 		tt := testcase
 		s.Run(tt.name, func() {
@@ -3350,7 +3412,6 @@ func (s *PluginSuite) TestListParentIDEntries() {
 		expectedList        []*common.RegistrationEntry
 	}{
 		{
-
 			name:                "test_parentID_found",
 			registrationEntries: allEntries,
 			parentID:            "spiffe://parent",
@@ -3364,7 +3425,6 @@ func (s *PluginSuite) TestListParentIDEntries() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -3414,7 +3474,6 @@ func (s *PluginSuite) TestListSelectorEntries() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -3471,7 +3530,6 @@ func (s *PluginSuite) TestListEntriesBySelectorSubset() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -3528,7 +3586,6 @@ func (s *PluginSuite) TestListSelectorEntriesSuperset() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -3596,7 +3653,6 @@ func (s *PluginSuite) TestListEntriesBySelectorMatchAny() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -3664,7 +3720,6 @@ func (s *PluginSuite) TestListEntriesByFederatesWithExact() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -3732,7 +3787,6 @@ func (s *PluginSuite) TestListEntriesByFederatesWithSubset() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -3805,7 +3859,6 @@ func (s *PluginSuite) TestListEntriesByFederatesWithMatchAny() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -3877,7 +3930,6 @@ func (s *PluginSuite) TestListEntriesByFederatesWithSuperset() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			ds := s.newPlugin()
 			defer ds.Close()
@@ -4627,7 +4679,8 @@ func (s *PluginSuite) TestListFederationRelationships() {
 				PageSize: 2,
 			},
 			expectedList: []*datastore.FederationRelationship{fr1, fr2},
-			expectedPagination: &datastore.Pagination{Token: "2",
+			expectedPagination: &datastore.Pagination{
+				Token:    "2",
 				PageSize: 2,
 			},
 		},
@@ -4669,7 +4722,6 @@ func (s *PluginSuite) TestListFederationRelationships() {
 		},
 	}
 	for _, test := range tests {
-		test := test
 		s.T().Run(test.name, func(t *testing.T) {
 			resp, err := s.ds.ListFederationRelationships(ctx, &datastore.ListFederationRelationshipsRequest{
 				Pagination: test.pagination,
@@ -4892,7 +4944,7 @@ func (s *PluginSuite) TestUpdateFederationRelationship() {
 }
 
 func (s *PluginSuite) TestMigration() {
-	for schemaVersion := 0; schemaVersion < latestSchemaVersion; schemaVersion++ {
+	for schemaVersion := range latestSchemaVersion {
 		s.T().Run(fmt.Sprintf("migration_from_schema_version_%d", schemaVersion), func(t *testing.T) {
 			require := require.New(t)
 			dbName := fmt.Sprintf("v%d.sqlite3", schemaVersion)
@@ -5224,7 +5276,6 @@ func (s *PluginSuite) TestConfigure() {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		s.T().Run(tt.desc, func(t *testing.T) {
 			dbPath := filepath.ToSlash(filepath.Join(s.dir, "test-datastore-configure.sqlite3"))
 
@@ -5245,7 +5296,7 @@ func (s *PluginSuite) TestConfigure() {
 			// begin many queries simultaneously
 			numQueries := 100
 			var rowsList []*sql.Rows
-			for i := 0; i < numQueries; i++ {
+			for range numQueries {
 				rows, err := db.Query("SELECT * FROM bundles")
 				require.NoError(t, err)
 				rowsList = append(rowsList, rows)

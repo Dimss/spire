@@ -357,7 +357,6 @@ func TestConfigure(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := setupTest(t)
@@ -719,6 +718,7 @@ func TestGenerateKey(t *testing.T) {
 				{
 					Level:   logrus.WarnLevel,
 					Message: "In a future version of SPIRE, it will be mandatory for the SPIRE servers to assume an AWS IAM Role when using the default AWS KMS key policy. Please assign an IAM role to this SPIRE Server instance.",
+					Data:    logrus.Fields{reasonTag: `incomplete resource, expected 'resource-type/resource-id' but got "example-account-id"`},
 				},
 			},
 		},
@@ -734,11 +734,11 @@ func TestGenerateKey(t *testing.T) {
 				{
 					Level:   logrus.WarnLevel,
 					Message: "In a future version of SPIRE, it will be mandatory for the SPIRE servers to assume an AWS IAM Role when using the default AWS KMS key policy. Please assign an IAM role to this SPIRE Server instance.",
+					Data:    logrus.Fields{reasonTag: `arn does not contain an assumed role: "arn:aws:sts::example-account-id:user/development"`},
 				},
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := setupTest(t)
@@ -1061,7 +1061,6 @@ func TestSignData(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := setupTest(t)
@@ -1131,7 +1130,6 @@ func TestGetPublicKey(t *testing.T) {
 			code: codes.InvalidArgument,
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := setupTest(t)
@@ -1176,7 +1174,6 @@ func TestGetPublicKeys(t *testing.T) {
 			name: "non existing keys",
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := setupTest(t)
@@ -1348,7 +1345,6 @@ func TestRefreshAliases(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := setupTest(t)
@@ -1580,7 +1576,6 @@ func TestDisposeAliases(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := setupTest(t)
@@ -1920,7 +1915,6 @@ func TestDisposeKeys(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := setupTest(t)

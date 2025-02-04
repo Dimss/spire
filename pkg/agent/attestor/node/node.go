@@ -28,7 +28,6 @@ import (
 	"github.com/spiffe/spire/pkg/common/tlspolicy"
 	"github.com/spiffe/spire/pkg/common/util"
 	"github.com/spiffe/spire/pkg/common/x509util"
-	"github.com/zeebo/errs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -101,7 +100,7 @@ func (a *attestor) Attest(ctx context.Context) (res *AttestationResult, err erro
 		// This is a bizarre case where we have an SVID but were unable to
 		// load a bundle from the cache which suggests some tampering with the
 		// cache on disk.
-		return nil, errs.New("SVID loaded but no bundle in cache")
+		return nil, errors.New("SVID loaded but no bundle in cache")
 	default:
 		log.WithField(telemetry.SPIFFEID, svid[0].URIs[0].String()).Info("SVID loaded")
 	}
@@ -228,7 +227,7 @@ func (a *attestor) newSVID(ctx context.Context, key keymanager.Key, bundle *spif
 	defer counter.Done(&err)
 	telemetry_common.AddAttestorType(counter, a.c.NodeAttestor.Name())
 
-	conn, err := a.serverConn(ctx, bundle)
+	conn, err := a.serverConn(bundle)
 	if err != nil {
 		return nil, nil, false, fmt.Errorf("create attestation client: %w", err)
 	}
@@ -252,9 +251,9 @@ func (a *attestor) newSVID(ctx context.Context, key keymanager.Key, bundle *spif
 	return newSVID, newBundle, reattestable, nil
 }
 
-func (a *attestor) serverConn(ctx context.Context, bundle *spiffebundle.Bundle) (*grpc.ClientConn, error) {
+func (a *attestor) serverConn(bundle *spiffebundle.Bundle) (*grpc.ClientConn, error) {
 	if bundle != nil {
-		return client.DialServer(ctx, client.DialServerConfig{
+		return client.NewServerGRPCClient(client.ServerClientConfig{
 			Address:     a.c.ServerAddress,
 			TrustDomain: a.c.TrustDomain,
 			GetBundle:   bundle.X509Authorities,
@@ -265,7 +264,7 @@ func (a *attestor) serverConn(ctx context.Context, bundle *spiffebundle.Bundle) 
 	if !a.c.InsecureBootstrap {
 		// We shouldn't get here since loadBundle() should fail if the bundle
 		// is empty, but just in case...
-		return nil, errs.New("no bundle and not doing insecure bootstrap")
+		return nil, errors.New("no bundle and not doing insecure bootstrap")
 	}
 
 	// Insecure bootstrapping. Do not verify the server chain but rather do a
@@ -279,7 +278,7 @@ func (a *attestor) serverConn(ctx context.Context, bundle *spiffebundle.Bundle) 
 			if len(rawCerts) == 0 {
 				// This is not really possible without a catastrophic bug
 				// creeping into the TLS stack.
-				return errs.New("server chain is unexpectedly empty")
+				return errors.New("server chain is unexpectedly empty")
 			}
 
 			expectedServerID, err := idutil.ServerID(a.c.TrustDomain)
@@ -292,18 +291,17 @@ func (a *attestor) serverConn(ctx context.Context, bundle *spiffebundle.Bundle) 
 				return err
 			}
 			if len(serverCert.URIs) != 1 || serverCert.URIs[0].String() != expectedServerID.String() {
-				return errs.New("expected server SPIFFE ID %q; got %q", expectedServerID, serverCert.URIs)
+				return fmt.Errorf("expected server SPIFFE ID %q; got %q", expectedServerID, serverCert.URIs)
 			}
 			return nil
 		},
 	}
 
-	return grpc.DialContext(ctx, a.c.ServerAddress, //nolint: staticcheck // It is going to be resolved on #5152
+	return grpc.NewClient(
+		a.c.ServerAddress,
 		grpc.WithDefaultServiceConfig(roundRobinServiceConfig),
 		grpc.WithDisableServiceConfig(),
-		grpc.FailOnNonTempDialError(true), //nolint: staticcheck // It is going to be resolved on #5152
 		grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)),
-		grpc.WithReturnConnectionError(), //nolint: staticcheck // It is going to be resolved on #5152
 	)
 }
 

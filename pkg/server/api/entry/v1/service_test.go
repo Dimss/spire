@@ -141,13 +141,12 @@ func TestCountEntries(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ds := fakedatastore.New(t)
 			test := setupServiceTest(t, ds)
 			defer test.Cleanup()
 
-			for i := 0; i < int(tt.count); i++ {
+			for i := range int(tt.count) {
 				_, err := test.ds.CreateRegistrationEntry(ctx, &common.RegistrationEntry{
 					ParentId: spiffeid.RequireFromSegments(td, fmt.Sprintf("parent%d", i)).String(),
 					SpiffeId: spiffeid.RequireFromSegments(td, fmt.Sprintf("child%d", i)).String(),
@@ -1194,7 +1193,6 @@ func TestListEntries(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test.logHook.Reset()
 			ds.SetNextError(tt.dsError)
@@ -1444,7 +1442,6 @@ func TestGetEntry(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test.logHook.Reset()
 			ds.SetNextError(tt.dsError)
@@ -1664,7 +1661,8 @@ func TestBatchCreateEntry(t *testing.T) {
 					},
 					Selectors: []*types.Selector{{Type: "type", Value: "value"}},
 					DnsNames:  []string{""},
-				}, {
+				},
+				{
 					Id: "entry2",
 					ParentId: &types.SPIFFEID{
 						TrustDomain: "example.org",
@@ -1739,7 +1737,8 @@ func TestBatchCreateEntry(t *testing.T) {
 						{Type: "type", Value: "value2"},
 					},
 					Hint: "internal",
-				}},
+				},
+			},
 			expectDsEntries: map[string]*common.RegistrationEntry{
 				"entry1": {
 					EntryId:  "entry1",
@@ -1810,7 +1809,8 @@ func TestBatchCreateEntry(t *testing.T) {
 						{Type: "type", Value: "value2"},
 					},
 					StoreSvid: true,
-				}},
+				},
+			},
 			expectDsEntries: map[string]*common.RegistrationEntry{
 				"entry1": {
 					EntryId:  "entry1",
@@ -2390,7 +2390,6 @@ func TestBatchCreateEntry(t *testing.T) {
 			}},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ds := newFakeDS(t)
 
@@ -2651,7 +2650,6 @@ func TestBatchDeleteEntry(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ds := fakedatastore.New(t)
 			test := setupServiceTest(t, ds)
@@ -2868,7 +2866,6 @@ func TestGetAuthorizedEntries(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test := setupServiceTest(t, fakedatastore.New(t))
 			defer test.Cleanup()
@@ -3265,7 +3262,6 @@ func TestSyncAuthorizedEntries(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			test := setupServiceTest(t, fakedatastore.New(t))
 			defer func() {
@@ -3322,7 +3318,7 @@ func FuzzSyncAuthorizedStreams(f *testing.F) {
 
 	const maxEntries = 40
 	var entries []*types.Entry
-	for i := 0; i < maxEntries; i++ {
+	for i := range maxEntries {
 		entries = append(entries, &types.Entry{Id: strconv.Itoa(i), RevisionNumber: 1})
 	}
 
@@ -3374,7 +3370,7 @@ func FuzzSyncAuthorizedStreams(f *testing.F) {
 		// The number of entries exceeded the page size. Expect one or more
 		// pages of entry revisions.
 		var actualIDs []string
-		for page := 0; page < calculatePageCount(totalEntries)-1; page++ {
+		for range calculatePageCount(totalEntries) - 1 {
 			resp := recvNoError(t, stream)
 			require.Equal(t, len(resp.EntryRevisions), entryPageSize)
 			require.Zero(t, resp.Entries)
@@ -3397,7 +3393,7 @@ func FuzzSyncAuthorizedStreams(f *testing.F) {
 		require.NoError(t, stream.Send(&entryv1.SyncAuthorizedEntriesRequest{Ids: staleIDs}))
 
 		actualIDs = actualIDs[:0]
-		for page := 0; page < calculatePageCount(len(staleIDs))-1; page++ {
+		for range calculatePageCount(len(staleIDs)) - 1 {
 			resp = recvNoError(t, stream)
 			require.Equal(t, len(resp.Entries), entryPageSize)
 			require.Zero(t, resp.EntryRevisions)
@@ -3508,7 +3504,8 @@ func TestBatchUpdateEntry(t *testing.T) {
 				{
 					Status: &types.Status{Code: int32(codes.OK), Message: "OK"},
 					Entry: &types.Entry{
-						ParentId: &types.SPIFFEID{TrustDomain: "example.org", Path: "/parentUpdated"}},
+						ParentId: &types.SPIFFEID{TrustDomain: "example.org", Path: "/parentUpdated"},
+					},
 				},
 			},
 			expectLogs: func(m map[string]string) []spiretest.LogEntry {
@@ -3551,7 +3548,8 @@ func TestBatchUpdateEntry(t *testing.T) {
 				{
 					Status: &types.Status{Code: int32(codes.OK), Message: "OK"},
 					Entry: &types.Entry{
-						SpiffeId: &types.SPIFFEID{TrustDomain: "example.org", Path: "/workloadUpdated"}},
+						SpiffeId: &types.SPIFFEID{TrustDomain: "example.org", Path: "/workloadUpdated"},
+					},
 				},
 			},
 			expectLogs: func(m map[string]string) []spiretest.LogEntry {
@@ -4172,8 +4170,10 @@ func TestBatchUpdateEntry(t *testing.T) {
 			},
 			expectResults: []*entryv1.BatchUpdateEntryResponse_Result{
 				{
-					Status: &types.Status{Code: int32(codes.InvalidArgument),
-						Message: "failed to convert entry: invalid spiffe ID: trust domain is missing"},
+					Status: &types.Status{
+						Code:    int32(codes.InvalidArgument),
+						Message: "failed to convert entry: invalid spiffe ID: trust domain is missing",
+					},
 				},
 			},
 			expectLogs: func(m map[string]string) []spiretest.LogEntry {
@@ -4213,8 +4213,10 @@ func TestBatchUpdateEntry(t *testing.T) {
 			},
 			expectResults: []*entryv1.BatchUpdateEntryResponse_Result{
 				{
-					Status: &types.Status{Code: int32(codes.InvalidArgument),
-						Message: "failed to convert entry: invalid parent ID: trust domain is missing"},
+					Status: &types.Status{
+						Code:    int32(codes.InvalidArgument),
+						Message: "failed to convert entry: invalid parent ID: trust domain is missing",
+					},
 				},
 			},
 			expectLogs: func(m map[string]string) []spiretest.LogEntry {
@@ -4254,8 +4256,10 @@ func TestBatchUpdateEntry(t *testing.T) {
 			},
 			expectResults: []*entryv1.BatchUpdateEntryResponse_Result{
 				{
-					Status: &types.Status{Code: int32(codes.InvalidArgument),
-						Message: "failed to convert entry: invalid parent ID: trust domain is missing"},
+					Status: &types.Status{
+						Code:    int32(codes.InvalidArgument),
+						Message: "failed to convert entry: invalid parent ID: trust domain is missing",
+					},
 				},
 			},
 			expectLogs: func(m map[string]string) []spiretest.LogEntry {
@@ -4295,8 +4299,10 @@ func TestBatchUpdateEntry(t *testing.T) {
 			},
 			expectResults: []*entryv1.BatchUpdateEntryResponse_Result{
 				{
-					Status: &types.Status{Code: int32(codes.InvalidArgument),
-						Message: "failed to convert entry: invalid spiffe ID: trust domain is missing"},
+					Status: &types.Status{
+						Code:    int32(codes.InvalidArgument),
+						Message: "failed to convert entry: invalid spiffe ID: trust domain is missing",
+					},
 				},
 			},
 			expectLogs: func(m map[string]string) []spiretest.LogEntry {
@@ -4336,8 +4342,10 @@ func TestBatchUpdateEntry(t *testing.T) {
 			},
 			expectResults: []*entryv1.BatchUpdateEntryResponse_Result{
 				{
-					Status: &types.Status{Code: int32(codes.InvalidArgument),
-						Message: "failed to convert entry: selector list is empty"},
+					Status: &types.Status{
+						Code:    int32(codes.InvalidArgument),
+						Message: "failed to convert entry: selector list is empty",
+					},
 				},
 			},
 			expectLogs: func(m map[string]string) []spiretest.LogEntry {
@@ -4597,7 +4605,6 @@ func TestBatchUpdateEntry(t *testing.T) {
 			},
 		},
 	} {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			ds := fakedatastore.New(t)
 			test := setupServiceTest(t, ds)
@@ -4773,7 +4780,7 @@ func setupServiceTest(t *testing.T, ds datastore.DataStore, options ...serviceTe
 		grpctest.Middleware(middleware.WithAuditLog(false)),
 	)
 
-	conn := server.Dial(t)
+	conn := server.NewGRPCClient(t)
 
 	test.client = entryv1.NewEntryClient(conn)
 	test.done = server.Stop
